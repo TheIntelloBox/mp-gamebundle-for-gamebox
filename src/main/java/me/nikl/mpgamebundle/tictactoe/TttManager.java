@@ -77,7 +77,8 @@ public class TttManager extends EasyManager {
         double reward = buttonSec.getDouble("reward", 0.);
         int tokens = buttonSec.getInt("tokens", 0);
         boolean saveStats = buttonSec.getBoolean("saveStats", false);
-        gameTypes.put(buttonID, new TttRules(buttonID, saveStats, SaveType.WINS, cost, reward, tokens));
+        boolean loseOnTimeOver = true;
+        gameTypes.put(buttonID, new TttRules(buttonID, saveStats, SaveType.WINS, cost, reward, tokens, loseOnTimeOver));
     }
 
     @Override

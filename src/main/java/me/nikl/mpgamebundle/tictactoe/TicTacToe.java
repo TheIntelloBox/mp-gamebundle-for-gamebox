@@ -3,11 +3,12 @@ package me.nikl.mpgamebundle.tictactoe;
 import me.nikl.gamebox.GameBox;
 import me.nikl.gamebox.game.Game;
 import me.nikl.gamebox.game.GameSettings;
+import me.nikl.gamebox.utility.ItemStackUtility;
 import me.nikl.mpgamebundle.GameBundle;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,23 @@ public class TicTacToe extends Game {
 
     @Override
     public void init() {
-        // load the markers here
+        loadMarkers();
+    }
+
+    private void loadMarkers() {
+        if (!config.isConfigurationSection("markers")) loadDefaultMarkers();
+        ConfigurationSection markersSection = config.getConfigurationSection("markers");
+        for (String key : config.getKeys(false)) {
+            if (!markersSection.isConfigurationSection(key)) continue;
+            ItemStack marker = ItemStackUtility.loadItem(markersSection.getConfigurationSection(key));
+            if (marker == null) continue;
+            markers.add(marker);
+        }
+        if (markers.size() < 2) loadDefaultMarkers();
+    }
+
+    private void loadDefaultMarkers() {
+        // ToDo: load default from the default config file
         ItemStack markerOne = new ItemStack(Material.STAINED_GLASS, 1, (short) 14);
         ItemMeta meta = markerOne.getItemMeta();
         meta.setDisplayName("%player%");
@@ -42,7 +59,6 @@ public class TicTacToe extends Game {
         markerTwo.setItemMeta(meta);
         markers.add(markerOne);
         markers.add(markerTwo);
-        // check size >= 2
     }
 
     @Override
@@ -60,7 +76,7 @@ public class TicTacToe extends Game {
         gameManager = new TttManager(this);
     }
 
-    public MarkerPair getMarkerPair(String nameOne, String nameTwo) {
+    public MarkerPair getRandomMarkerPair(String nameOne, String nameTwo) {
         int indexOne = random.nextInt(markers.size());
         int indexTwo = random.nextInt(markers.size());
         while (indexOne == indexTwo) {

@@ -33,11 +33,13 @@ public class TttGame {
     private boolean firstTurn = false;
     private int timePerTurn = 10;
     private boolean gameOver = false;
+    private TttRules rules;
 
-    public TttGame(TicTacToe ticTacToe, Player playerOne, Player playerTwo) {
+    public TttGame(TicTacToe ticTacToe, TttRules rules, Player playerOne, Player playerTwo) {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
         this.ticTacToe = ticTacToe;
+        this.rules = rules;
         language = (TttLanguage) ticTacToe.getGameLang();
         nmsUtility = NmsFactory.getNmsUtility();
         this.inventory = ticTacToe.createInventory(54, this.language.PREFIX);
@@ -58,6 +60,10 @@ public class TttGame {
         int timeLeft = getTimeLeftInSeconds();
         if (timeLeft < 1) {
             // ToDo: game over (gave up)
+            if (rules.isLoseOnTimeOver()) {
+                onGaveUp();
+                return;
+            }
             nextTurn();
             return;
         }
@@ -70,6 +76,21 @@ public class TttGame {
         }
     }
 
+    private void onGaveUp() {
+        gameOver();
+        if (firstTurn) {
+            nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
+            playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
+            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
+            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP);
+        } else {
+            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
+            playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
+            nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
+            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP);
+        }
+    }
+
     private void nextTurn() {
         firstTurn = !firstTurn;
         beginNewTurn = System.currentTimeMillis();
@@ -78,7 +99,7 @@ public class TttGame {
 
     private void prepareInventory() {
         for (int i = 0; i < 9; i++) grid[i] = 0;
-        markerPair = ticTacToe.getMarkerPair(playerOne.getName(), playerTwo.getName());
+        markerPair = ticTacToe.getRandomMarkerPair(playerOne.getName(), playerTwo.getName());
         inventory.setItem(0, markerPair.getOne());
         inventory.setItem(8, markerPair.getTwo());
         inventory.setItem(1, ItemStackUtility.getPlayerHead(playerOne.getName()));
@@ -105,8 +126,7 @@ public class TttGame {
     }
 
     private void onGameWon() {
-        timer.cancel();
-        gameOver = true;
+        gameOver();
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
@@ -114,6 +134,11 @@ public class TttGame {
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
         }
+    }
+
+    private void gameOver() {
+        timer.cancel();
+        gameOver = true;
     }
 
     private boolean isPlayerOne(InventoryInteractEvent event) {
