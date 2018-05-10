@@ -36,7 +36,10 @@ public class TicTacToe extends Game {
     }
 
     private void loadMarkers() {
-        if (!config.isConfigurationSection("markers")) loadDefaultMarkers();
+        if (!config.isConfigurationSection("markers")) {
+            loadDefaultMarkers();
+            return;
+        }
         ConfigurationSection markersSection = config.getConfigurationSection("markers");
         for (String key : config.getKeys(false)) {
             if (!markersSection.isConfigurationSection(key)) continue;

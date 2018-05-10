@@ -22,7 +22,6 @@ import java.util.UUID;
  */
 public class TttManager extends EasyManager {
     private Map<String, TttRules> gameTypes = new HashMap<>();
-    private Set<UUID> inGame = new HashSet<>();
     private Map<UUID, TttGame> games = new HashMap<>();
     private GameBox gameBox;
     private TicTacToe ticTacToe;
@@ -36,7 +35,7 @@ public class TttManager extends EasyManager {
 
     @Override
     public boolean isInGame(UUID uuid) {
-        return inGame.contains(uuid);
+        return games.keySet().contains(uuid);
     }
 
     @Override
@@ -61,14 +60,18 @@ public class TttManager extends EasyManager {
             throw new GameStartException(GameStartException.Reason.NOT_ENOUGH_MONEY_SECOND_PLAYER);
         }
         ticTacToe.payIfNecessary(players, rule.getCost());
-        TttGame game = new TttGame(ticTacToe, players[0], players[1]);
+        TttGame game = new TttGame(ticTacToe, rule, players[0], players[1]);
         games.put(players[0].getUniqueId(), game);
         games.put(players[1].getUniqueId(), game);
     }
 
     @Override
     public void removeFromGame(UUID uuid) {
-
+        TttGame game = games.get(uuid);
+        if (game == null) return;
+        game.nextTurn();
+        game.onGameWon();
+        games.remove(uuid);
     }
 
     @Override
@@ -95,8 +98,6 @@ public class TttManager extends EasyManager {
 
     @Override
     public void onInventoryClose(InventoryCloseEvent inventoryCloseEvent) {
-        TttGame game = games.get(inventoryCloseEvent.getPlayer().getUniqueId());
-        if (game == null) return;
-        game.onClose(inventoryCloseEvent);
+        removeFromGame(inventoryCloseEvent.getPlayer().getUniqueId());
     }
 }

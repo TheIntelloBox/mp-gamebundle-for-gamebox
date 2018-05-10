@@ -3,6 +3,7 @@ package me.nikl.mpgamebundle.tictactoe;
 import me.nikl.gamebox.nms.NmsFactory;
 import me.nikl.gamebox.nms.NmsUtility;
 import me.nikl.gamebox.utility.ItemStackUtility;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -10,6 +11,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Random;
 
@@ -25,11 +27,12 @@ public class TttGame {
     private Inventory inventory;
     private TttLanguage language;
     private TicTacToe.MarkerPair markerPair;
-    private ItemStack border = new ItemStack(Material.PAPER, 1);
+    private ItemStack paperOut = new ItemStack(Material.PAPER, 1);
+    private ItemStack paperIn = new ItemStack(Material.PAPER, 1);
     private int stonesPlaced = 0;
     private Integer[] grid = new Integer[9];
     private GameTimer timer;
-    private long beginNewTurn;
+    private long beginningTurn;
     private boolean firstTurn = false;
     private int timePerTurn = 10;
     private boolean gameOver = false;
@@ -45,28 +48,27 @@ public class TttGame {
         this.inventory = ticTacToe.createInventory(54, this.language.PREFIX);
         playerOne.openInventory(inventory);
         playerTwo.openInventory(inventory);
+        ItemMeta meta = paperOut.getItemMeta();
+        meta.setDisplayName(ChatColor.RED.toString());
+        paperOut.setItemMeta(meta);
+        meta.setDisplayName(ChatColor.DARK_AQUA + "Click to draw");
+        paperIn.setItemMeta(meta);
         prepareInventory();
         timer = new GameTimer(this);
         timer.runTaskTimer(ticTacToe.getGameBox(), 3, 3);
         double randomNumber = random.nextDouble();
         if (randomNumber < 0.5) {
             firstTurn = true;
-            beginNewTurn = System.currentTimeMillis();
+            beginningTurn = System.currentTimeMillis();
         }
         updateTitle();
     }
 
     private void updateTitle() {
-        int timeLeft = getTimeLeftInSeconds();
-        if (timeLeft < 1) {
-            // ToDo: game over (gave up)
-            if (rules.isLoseOnTimeOver()) {
-                onGaveUp();
-                return;
-            }
-            nextTurn();
-            return;
-        }
+        updateTitle(getTimeLeftInSeconds());
+    }
+
+    private void updateTitle(int timeLeft) {
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_YOUR_TURN.replace("%time%", String.valueOf(timeLeft)));
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_OTHERS_TURN.replace("%time%", String.valueOf(timeLeft)));
@@ -91,10 +93,9 @@ public class TttGame {
         }
     }
 
-    private void nextTurn() {
+    void nextTurn() {
         firstTurn = !firstTurn;
-        beginNewTurn = System.currentTimeMillis();
-        updateTitle();
+        beginningTurn = System.currentTimeMillis();
     }
 
     private void prepareInventory() {
@@ -104,28 +105,40 @@ public class TttGame {
         inventory.setItem(8, markerPair.getTwo());
         inventory.setItem(1, ItemStackUtility.getPlayerHead(playerOne.getName()));
         inventory.setItem(7, ItemStackUtility.getPlayerHead(playerTwo.getName()));
-        inventory.setItem(11, border);
-        inventory.setItem(15, border);
-        inventory.setItem(47, border);
-        inventory.setItem(51, border);
-    }
-
-    public void onClick(InventoryClickEvent event) {
-        if (gameOver) return;
-        int gridSlot = toSmallGrid(event.getSlot());
-        if (gridSlot < 0) return;
-        if (firstTurn && !event.getWhoClicked().getUniqueId().equals(playerOne.getUniqueId())) return;
-        if (grid[gridSlot] != 0) return;
-        boolean isPlayerOne = isPlayerOne(event);
-        grid[gridSlot] = isPlayerOne?1:2;
-        inventory.setItem(event.getSlot(), isPlayerOne?markerPair.getOne():markerPair.getTwo());
-        stonesPlaced ++;
-        if (isWon()) {
-            onGameWon();
+        for (int row = 1; row < 6; row ++) {
+            for (int column = 2; column < 7; column ++) {
+                int index = row*9 + column;
+                if (toSmallGrid(index) < 0) {
+                    inventory.setItem(index, paperOut);
+                } else {
+                    inventory.setItem(index, paperIn);
+                }
+            }
         }
     }
 
-    private void onGameWon() {
+    public void onClick(InventoryClickEvent event) {
+        ticTacToe.info("click");
+        if (gameOver) return;
+        int gridSlot = toSmallGrid(event.getSlot());
+        ticTacToe.info("gridSlot: " + gridSlot);
+        if (gridSlot < 0) return;
+        if (firstTurn && !isPlayerOne(event)) return;
+        if (!firstTurn && !isPlayerTwo(event)) return;
+        ticTacToe.info("turn: " + firstTurn);
+        if (grid[gridSlot] != 0) return;
+        grid[gridSlot] = firstTurn?1:2;
+        inventory.setItem(event.getSlot(), firstTurn?markerPair.getOne():markerPair.getTwo());
+        stonesPlaced ++;
+        if (isWon()) {
+            onGameWon();
+        } else {
+            nextTurn();
+            updateTitle();
+        }
+    }
+
+    void onGameWon() {
         gameOver();
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
@@ -145,6 +158,10 @@ public class TttGame {
         return playerOne.getUniqueId().equals(event.getWhoClicked().getUniqueId());
     }
 
+    private boolean isPlayerTwo(InventoryInteractEvent event) {
+        return playerTwo.getUniqueId().equals(event.getWhoClicked().getUniqueId());
+    }
+
     private boolean isWon() {
         if (stonesPlaced < 3) return false;
         for (int i = 0; i < 3; i++) {
@@ -159,9 +176,9 @@ public class TttGame {
     private int toSmallGrid(int inventorySlot) {
         int row = inventorySlot / 9;
         int column = inventorySlot % 9;
-        if (row < 3 || row > 5) return -1;
         if (column < 3 || column > 5) return -1;
-        return (row - 3)*3 + column - 3;
+        if (row < 2 || row > 4) return -1;
+        return (row - 2)*3 + column - 3;
     }
 
     private int toInventory(int gridSlot) {
@@ -174,9 +191,19 @@ public class TttGame {
     }
 
     public void tick() {
+        int timeLeft = getTimeLeftInSeconds();
+        if (timeLeft < 1) {
+            // ToDo: game over (gave up)
+            if (rules.isLoseOnTimeOver()) {
+                onGaveUp();
+                return;
+            }
+            nextTurn();
+        }
+        updateTitle(timeLeft);
     }
 
     private int getTimeLeftInSeconds() {
-        return ((int)(beginNewTurn + timePerTurn * 1000 - System.currentTimeMillis())/1000);
+        return ((int)(beginningTurn + timePerTurn * 1000 - System.currentTimeMillis())/1000);
     }
 }
