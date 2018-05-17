@@ -27,8 +27,8 @@ public class TttGame {
     private Inventory inventory;
     private TttLanguage language;
     private TicTacToe.MarkerPair markerPair;
-    private ItemStack paperOut = new ItemStack(Material.PAPER, 1);
-    private ItemStack paperIn = new ItemStack(Material.PAPER, 1);
+    private ItemStack paperOut;
+    private ItemStack paperIn;
     private int stonesPlaced = 0;
     private Integer[] grid = new Integer[9];
     private GameTimer timer;
@@ -43,24 +43,21 @@ public class TttGame {
         this.playerTwo = playerTwo;
         this.ticTacToe = ticTacToe;
         this.rules = rules;
+        paperOut = ticTacToe.getSheetBorderItem();
+        paperIn = ticTacToe.getSheetInnerItem();
         language = (TttLanguage) ticTacToe.getGameLang();
         nmsUtility = NmsFactory.getNmsUtility();
         this.inventory = ticTacToe.createInventory(54, this.language.PREFIX);
         playerOne.openInventory(inventory);
         playerTwo.openInventory(inventory);
-        ItemMeta meta = paperOut.getItemMeta();
-        meta.setDisplayName(ChatColor.RED.toString());
-        paperOut.setItemMeta(meta);
-        meta.setDisplayName(ChatColor.DARK_AQUA + "Click to draw");
-        paperIn.setItemMeta(meta);
         prepareInventory();
         timer = new GameTimer(this);
         timer.runTaskTimer(ticTacToe.getGameBox(), 3, 3);
         double randomNumber = random.nextDouble();
         if (randomNumber < 0.5) {
             firstTurn = true;
-            beginningTurn = System.currentTimeMillis();
         }
+        beginningTurn = System.currentTimeMillis();
         updateTitle();
     }
 
@@ -129,6 +126,7 @@ public class TttGame {
         if (grid[gridSlot] != 0) return;
         grid[gridSlot] = firstTurn?1:2;
         inventory.setItem(event.getSlot(), firstTurn?markerPair.getOne():markerPair.getTwo());
+        ticTacToe.info("placed " + (firstTurn?"1":"2") + " in grid slot " + gridSlot);
         stonesPlaced ++;
         if (isWon()) {
             onGameWon();

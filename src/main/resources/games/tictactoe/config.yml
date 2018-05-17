@@ -54,19 +54,26 @@ gameBox:
       - '&6Rank:&1 %rank%'
       - '&6Wins:&1 %wins%'
 
-marks:
-  mark1:
-    material: 'bone'
+sheetBorder:
+  materialData: 'paper'
+  displayName: '&5border'
+sheetInner:
+  materialData: 'paper'
+  displayName: '&5inner'
+
+markers:
+  marker1:
+    materialData: 'bone'
     displayName: '&5%player%'
-  mark2:
-    material: 'apple'
+  marker2:
+    materialData: 'apple'
     displayName: '&5%player%'
-  mark3:
-    material: 'anvil'
+  marker3:
+    materialData: 'anvil'
     displayName: '&5%player%'
-  mark4:
-    material: 'structure_void'
+  marker4:
+    materialData: 'structure_void'
     displayName: '&5%player%'
-  mark5:
-    material: 'double_plant'
+  marker5:
+    materialData: 'double_plant'
     displayName: '&5%player%'
