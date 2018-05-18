@@ -34,6 +34,8 @@ gameBox:
       cost: 5
       reward: 9
       tokens: 1
+      # time in seconds for each turn (default 10)
+      timePerTurn: 10
       inviteGuiTitle: "       &3Tic Tac Toe"
       saveStats: true
   topListButtons:
@@ -55,11 +57,11 @@ gameBox:
       - '&6Wins:&1 %wins%'
 
 sheetBorder:
-  materialData: 'paper'
-  displayName: '&5border'
+  materialData: 'leather'
+  displayName: '&5'
 sheetInner:
   materialData: 'paper'
-  displayName: '&5inner'
+  displayName: '&5Click to set your mark'
 
 markers:
   marker1:

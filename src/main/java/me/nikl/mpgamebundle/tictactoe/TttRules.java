@@ -8,12 +8,19 @@ import me.nikl.gamebox.game.rules.GameRuleRewards;
  */
 public class TttRules extends GameRuleRewards {
     private boolean loseOnTimeOver;
-    public TttRules(String key, boolean saveStats, SaveType saveType, double cost, double moneyToWin, int tokenToWin, boolean loseOnTimeOver) {
+    private int timePerTurn = 10;
+
+    public TttRules(String key, boolean saveStats, SaveType saveType, double cost, double moneyToWin, int tokenToWin, int timePerTurn, boolean loseOnTimeOver) {
         super(key, saveStats, saveType, cost, moneyToWin, tokenToWin);
         this.loseOnTimeOver = loseOnTimeOver;
+        this.timePerTurn = timePerTurn;
     }
 
     public boolean isLoseOnTimeOver() {
         return loseOnTimeOver;
+    }
+
+    public int getTimePerTurn() {
+        return timePerTurn;
     }
 }

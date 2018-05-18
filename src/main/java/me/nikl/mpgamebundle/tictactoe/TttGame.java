@@ -34,7 +34,7 @@ public class TttGame {
     private GameTimer timer;
     private long beginningTurn;
     private boolean firstTurn = false;
-    private int timePerTurn = 10;
+    private int timePerTurn;
     private boolean gameOver = false;
     private TttRules rules;
 
@@ -43,6 +43,7 @@ public class TttGame {
         this.playerTwo = playerTwo;
         this.ticTacToe = ticTacToe;
         this.rules = rules;
+        timePerTurn = rules.getTimePerTurn();
         paperOut = ticTacToe.getSheetBorderItem();
         paperIn = ticTacToe.getSheetInnerItem();
         language = (TttLanguage) ticTacToe.getGameLang();
