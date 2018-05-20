@@ -3,17 +3,16 @@ package me.nikl.mpgamebundle.tictactoe;
 import me.nikl.gamebox.nms.NmsFactory;
 import me.nikl.gamebox.nms.NmsUtility;
 import me.nikl.gamebox.utility.ItemStackUtility;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * @author Niklas Eicker
@@ -82,12 +81,12 @@ public class TttGame {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
             playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
-            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP);
+            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
         } else {
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
             playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
-            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP);
+            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
         }
     }
 
@@ -101,8 +100,7 @@ public class TttGame {
         markerPair = ticTacToe.getRandomMarkerPair(playerOne.getName(), playerTwo.getName());
         inventory.setItem(0, markerPair.getOne());
         inventory.setItem(8, markerPair.getTwo());
-        inventory.setItem(1, ItemStackUtility.getPlayerHead(playerOne.getName()));
-        inventory.setItem(7, ItemStackUtility.getPlayerHead(playerTwo.getName()));
+        setHeads();
         for (int row = 1; row < 6; row ++) {
             for (int column = 2; column < 7; column ++) {
                 int index = row*9 + column;
@@ -113,6 +111,19 @@ public class TttGame {
                 }
             }
         }
+    }
+
+    private void setHeads() {
+        ItemStack headOne = ItemStackUtility.getPlayerHead(playerOne.getName()).clone();
+        ItemStack headTwo = ItemStackUtility.getPlayerHead(playerTwo.getName()).clone();
+        ItemMeta meta = headOne.getItemMeta();
+        meta.setLore(new ArrayList<>());
+        headOne.setItemMeta(meta);
+        meta = headTwo.getItemMeta();
+        meta.setLore(new ArrayList<>());
+        headTwo.setItemMeta(meta);
+        inventory.setItem(1, headOne);
+        inventory.setItem(7, headTwo);
     }
 
     public void onClick(InventoryClickEvent event) {
@@ -131,10 +142,20 @@ public class TttGame {
         stonesPlaced ++;
         if (isWon()) {
             onGameWon();
+        } else if(stonesPlaced > 8) {
+            onDraw();
         } else {
             nextTurn();
             updateTitle();
         }
+    }
+
+    private void onDraw() {
+        gameOver();
+        nmsUtility.updateInventoryTitle(playerOne, language.TITLE_DRAW);
+        nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_DRAW);
+        playerOne.sendMessage(language.PREFIX + language.GAME_DRAW);
+        playerTwo.sendMessage(language.PREFIX + language.GAME_DRAW);
     }
 
     void onGameWon() {
@@ -146,6 +167,7 @@ public class TttGame {
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
         }
+        ticTacToe.onGameWon(firstTurn?playerOne:playerTwo, rules, 1);
     }
 
     private void gameOver() {
@@ -165,7 +187,7 @@ public class TttGame {
         if (stonesPlaced < 3) return false;
         for (int i = 0; i < 3; i++) {
             if (grid[i] != 0 && grid[i].equals(grid[i + 3]) && grid[i + 3].equals(grid[i + 6])) return true;
-            if (grid[i] != 0 && grid[i].equals(grid[i + 1]) && grid[i + 1].equals(grid[i + 2])) return true;
+            if (grid[i*3] != 0 && grid[i*3].equals(grid[i*3 + 1]) && grid[i*3 + 1].equals(grid[i*3 + 2])) return true;
         }
         if (grid[0] != 0 && grid[0].equals(grid[4]) && grid[4].equals(grid[8])) return true;
         if (grid[6] != 0 && grid[6].equals(grid[4]) && grid[4].equals(grid[2])) return true;
@@ -186,10 +208,22 @@ public class TttGame {
         return (row + 3)*9 + column + 3;
     }
 
-    public void onClose(InventoryCloseEvent inventoryCloseEvent) {
+    public void onClose(UUID uuid) {
+        if (gameOver) return;
+        gameOver();
+        if (uuid.equals(playerOne.getUniqueId())) {
+            playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
+            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
+            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
+        } else {
+            playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
+            nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
+            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
+        }
     }
 
     public void tick() {
+        if (gameOver) return;
         int timeLeft = getTimeLeftInSeconds();
         if (timeLeft < 1) {
             // ToDo: game over (gave up)

@@ -30,7 +30,7 @@ gameBox:
       - '&1Reward: &29'
       # slot of the button in the gui
       #   be careful to not use the same twice ;)
-      slot: 27
+      slot: 22
       cost: 5
       reward: 9
       tokens: 1
@@ -47,7 +47,7 @@ gameBox:
       lore:
       - ""
       - "&1Combat &1top list"
-      slot: 36
+      slot: 31
       # inventory title of the top list (%player% and %game%)
       inventoryTitle: '              Top List'
       # Lore of the skulls in the inventory. Use %rank% for the rank and %wins% for the number of wins
@@ -64,18 +64,9 @@ sheetInner:
   displayName: '&5Click to set your mark'
 
 markers:
-  marker1:
-    materialData: 'bone'
-    displayName: '&5%player%'
-  marker2:
-    materialData: 'apple'
-    displayName: '&5%player%'
-  marker3:
-    materialData: 'anvil'
-    displayName: '&5%player%'
   marker4:
-    materialData: 'structure_void'
-    displayName: '&5%player%'
-  marker5:
-    materialData: 'double_plant'
-    displayName: '&5%player%'
+    materialData: 'slime_ball'
+    displayName: '&5%player%''s mark'
+  marker4:
+    materialData: 'barrier'
+    displayName: '&5%player%''s mark'

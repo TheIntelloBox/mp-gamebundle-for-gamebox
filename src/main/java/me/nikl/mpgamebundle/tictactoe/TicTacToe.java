@@ -5,6 +5,7 @@ import me.nikl.gamebox.game.Game;
 import me.nikl.gamebox.game.GameSettings;
 import me.nikl.gamebox.utility.ItemStackUtility;
 import me.nikl.mpgamebundle.GameBundle;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -103,13 +104,13 @@ public class TicTacToe extends Game {
 
     private void loadDefaultMarkers() {
         // ToDo: load default from the default config file
-        ItemStack markerOne = new ItemStack(Material.STAINED_GLASS, 1, (short) 14);
+        ItemStack markerOne = new ItemStack(Material.EMERALD, 1, (short) 14);
         ItemMeta meta = markerOne.getItemMeta();
-        meta.setDisplayName("%player%");
+        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%''s mark");
         markerOne.setItemMeta(meta);
-        ItemStack markerTwo = new ItemStack(Material.STAINED_GLASS, 1, (short) 7);
+        ItemStack markerTwo = new ItemStack(Material.DIAMOND, 1, (short) 7);
         meta = markerTwo.getItemMeta();
-        meta.setDisplayName("%player%");
+        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%''s mark");
         markerTwo.setItemMeta(meta);
         markers.add(markerOne);
         markers.add(markerTwo);

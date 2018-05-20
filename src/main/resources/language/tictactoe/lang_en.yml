@@ -16,6 +16,7 @@ game:
   # this message is displayed if the player won and economy is disabled
   won: " &2You won the game!"
   lost: " &4You lost the game"
+  draw: " &4The game finished draw"
   # gave up message
   gaveUp: " &4You gave up"
   # too slow message
@@ -37,6 +38,7 @@ gameHelp:
 inventoryTitles:
   won: "&2TicTacToe       &2You won!"
   lost: "&2TicTacToe       &4You lost!"
+  draw: "&2TicTacToe       &4Draw!"
   othersTurn: "&2TicTacToe     &4Others turn!  &a%time%"
   yourTurn: "&2TicTacToe     &2Your turn!  &4%time%"
 

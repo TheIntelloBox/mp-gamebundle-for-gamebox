@@ -69,8 +69,7 @@ public class TttManager extends EasyManager {
     public void removeFromGame(UUID uuid) {
         TttGame game = games.get(uuid);
         if (game == null) return;
-        game.nextTurn();
-        game.onGameWon();
+        game.onClose(uuid);
         games.remove(uuid);
     }
 
