@@ -1,45 +1,30 @@
-package me.nikl.mpgamebundle.tictactoe;
+package me.nikl.mpgamebundle.tictactoe.game;
 
 import me.nikl.gamebox.nms.NmsFactory;
-import me.nikl.gamebox.nms.NmsUtility;
 import me.nikl.gamebox.utility.ItemStackUtility;
+import me.nikl.mpgamebundle.tictactoe.TicTacToe;
+import me.nikl.mpgamebundle.tictactoe.TttLanguage;
+import me.nikl.mpgamebundle.tictactoe.TttRules;
+import me.nikl.mpgamebundle.tictactoe.game.GameTimer;
+import me.nikl.mpgamebundle.tictactoe.game.TttGame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 
 /**
  * @author Niklas Eicker
  */
-public class TttGame {
-    private Random random = new Random();
-    private NmsUtility nmsUtility;
-    private TicTacToe ticTacToe;
+public class TttGameMP extends TttGame {
     private Player playerOne;
     private Player playerTwo;
-    private Inventory inventory;
-    private TttLanguage language;
-    private TicTacToe.MarkerPair markerPair;
-    private ItemStack paperOut;
-    private ItemStack paperIn;
-    private int stonesPlaced = 0;
-    private Integer[] grid = new Integer[9];
-    private GameTimer timer;
-    private long beginningTurn;
     private boolean firstTurn = false;
-    private int timePerTurn;
-    private boolean gameOver = false;
-    private TttRules rules;
 
-    public TttGame(TicTacToe ticTacToe, TttRules rules, Player playerOne, Player playerTwo) {
-        this.playerOne = playerOne;
-        this.playerTwo = playerTwo;
+    public TttGameMP(TicTacToe ticTacToe, TttRules rules, Player playerOne, Player playerTwo) {
         this.ticTacToe = ticTacToe;
         this.rules = rules;
         timePerTurn = rules.getTimePerTurn();
@@ -48,6 +33,8 @@ public class TttGame {
         language = (TttLanguage) ticTacToe.getGameLang();
         nmsUtility = NmsFactory.getNmsUtility();
         this.inventory = ticTacToe.createInventory(54, this.language.PREFIX);
+        this.playerOne = playerOne;
+        this.playerTwo = playerTwo;
         playerOne.openInventory(inventory);
         playerTwo.openInventory(inventory);
         prepareInventory();
@@ -61,11 +48,8 @@ public class TttGame {
         updateTitle();
     }
 
-    private void updateTitle() {
-        updateTitle(getTimeLeftInSeconds());
-    }
-
-    private void updateTitle(int timeLeft) {
+    @Override
+    protected void updateTitle(int timeLeft) {
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_YOUR_TURN.replace("%time%", String.valueOf(timeLeft)));
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_OTHERS_TURN.replace("%time%", String.valueOf(timeLeft)));
@@ -75,7 +59,8 @@ public class TttGame {
         }
     }
 
-    private void onGaveUp() {
+    @Override
+    protected void onGaveUp() {
         gameOver();
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
@@ -90,30 +75,19 @@ public class TttGame {
         }
     }
 
-    void nextTurn() {
+    @Override
+    protected void nextTurn() {
         firstTurn = !firstTurn;
         beginningTurn = System.currentTimeMillis();
     }
 
-    private void prepareInventory() {
-        for (int i = 0; i < 9; i++) grid[i] = 0;
+    @Override
+    protected void getMarkerPair() {
         markerPair = ticTacToe.getRandomMarkerPair(playerOne.getName(), playerTwo.getName());
-        inventory.setItem(0, markerPair.getOne());
-        inventory.setItem(8, markerPair.getTwo());
-        setHeads();
-        for (int row = 1; row < 6; row ++) {
-            for (int column = 2; column < 7; column ++) {
-                int index = row*9 + column;
-                if (toSmallGrid(index) < 0) {
-                    inventory.setItem(index, paperOut);
-                } else {
-                    inventory.setItem(index, paperIn);
-                }
-            }
-        }
     }
 
-    private void setHeads() {
+    @Override
+    protected void setHeads() {
         ItemStack headOne = ItemStackUtility.getPlayerHead(playerOne.getName()).clone();
         ItemStack headTwo = ItemStackUtility.getPlayerHead(playerTwo.getName()).clone();
         ItemMeta meta = headOne.getItemMeta();
@@ -126,6 +100,7 @@ public class TttGame {
         inventory.setItem(7, headTwo);
     }
 
+    @Override
     public void onClick(InventoryClickEvent event) {
         ticTacToe.info("click");
         if (gameOver) return;
@@ -140,17 +115,11 @@ public class TttGame {
         inventory.setItem(event.getSlot(), firstTurn?markerPair.getOne():markerPair.getTwo());
         ticTacToe.info("placed " + (firstTurn?"1":"2") + " in grid slot " + gridSlot);
         stonesPlaced ++;
-        if (isWon()) {
-            onGameWon();
-        } else if(stonesPlaced > 8) {
-            onDraw();
-        } else {
-            nextTurn();
-            updateTitle();
-        }
+        checkGameStatusAndNextTurn();
     }
 
-    private void onDraw() {
+    @Override
+    protected void onDraw() {
         gameOver();
         nmsUtility.updateInventoryTitle(playerOne, language.TITLE_DRAW);
         nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_DRAW);
@@ -158,7 +127,8 @@ public class TttGame {
         playerTwo.sendMessage(language.PREFIX + language.GAME_DRAW);
     }
 
-    void onGameWon() {
+    @Override
+    protected void onGameWon() {
         gameOver();
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
@@ -170,11 +140,6 @@ public class TttGame {
         ticTacToe.onGameWon(firstTurn?playerOne:playerTwo, rules, 1);
     }
 
-    private void gameOver() {
-        timer.cancel();
-        gameOver = true;
-    }
-
     private boolean isPlayerOne(InventoryInteractEvent event) {
         return playerOne.getUniqueId().equals(event.getWhoClicked().getUniqueId());
     }
@@ -183,31 +148,7 @@ public class TttGame {
         return playerTwo.getUniqueId().equals(event.getWhoClicked().getUniqueId());
     }
 
-    private boolean isWon() {
-        if (stonesPlaced < 3) return false;
-        for (int i = 0; i < 3; i++) {
-            if (grid[i] != 0 && grid[i].equals(grid[i + 3]) && grid[i + 3].equals(grid[i + 6])) return true;
-            if (grid[i*3] != 0 && grid[i*3].equals(grid[i*3 + 1]) && grid[i*3 + 1].equals(grid[i*3 + 2])) return true;
-        }
-        if (grid[0] != 0 && grid[0].equals(grid[4]) && grid[4].equals(grid[8])) return true;
-        if (grid[6] != 0 && grid[6].equals(grid[4]) && grid[4].equals(grid[2])) return true;
-        return false;
-    }
-
-    private int toSmallGrid(int inventorySlot) {
-        int row = inventorySlot / 9;
-        int column = inventorySlot % 9;
-        if (column < 3 || column > 5) return -1;
-        if (row < 2 || row > 4) return -1;
-        return (row - 2)*3 + column - 3;
-    }
-
-    private int toInventory(int gridSlot) {
-        int row = gridSlot / 3;
-        int column = gridSlot % 3;
-        return (row + 3)*9 + column + 3;
-    }
-
+    @Override
     public void onClose(UUID uuid) {
         if (gameOver) return;
         gameOver();
@@ -220,23 +161,5 @@ public class TttGame {
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
             playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
         }
-    }
-
-    public void tick() {
-        if (gameOver) return;
-        int timeLeft = getTimeLeftInSeconds();
-        if (timeLeft < 1) {
-            // ToDo: game over (gave up)
-            if (rules.isLoseOnTimeOver()) {
-                onGaveUp();
-                return;
-            }
-            nextTurn();
-        }
-        updateTitle(timeLeft);
-    }
-
-    private int getTimeLeftInSeconds() {
-        return ((int)(beginningTurn + timePerTurn * 1000 - System.currentTimeMillis())/1000);
     }
 }

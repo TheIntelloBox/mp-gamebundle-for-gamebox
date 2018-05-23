@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class GameBundle extends JavaPlugin {
     public static final String TIC_TAC_TOE = "tictactoe";
     public static final String ROCK_PAPER_SCISSORS = "rockpaperscissors";
+    public static final String TIC_TAC_TOE_SP = "tictactoesingle";
     private GameBox gameBox;
 
     @Override
@@ -26,6 +27,9 @@ public class GameBundle extends JavaPlugin {
         new Module(gameBox, TIC_TAC_TOE
                 , "me.nikl.mpgamebundle.tictactoe.TicTacToe"
                 , this, TIC_TAC_TOE, "ttt");
+        new Module(gameBox, TIC_TAC_TOE_SP
+                , "me.nikl.mpgamebundle.tictactoe.TicTacToeSP"
+                , this, TIC_TAC_TOE_SP, "ttts");
         /*new Module(gameBox, ROCK_PAPER_SCISSORS
                 , "me.nikl.mpgamebundle.rockpaperscissors.RockPaperScissors"
                 , this, ROCK_PAPER_SCISSORS, "rps");*/

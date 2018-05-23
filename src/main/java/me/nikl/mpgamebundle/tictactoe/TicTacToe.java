@@ -23,6 +23,11 @@ public class TicTacToe extends Game {
     private Random random = new Random();
     private ItemStack sheetInnerItem;
     private ItemStack sheetBorderItem;
+    private ItemStack npcHead;
+
+    public TicTacToe(GameBox gameBox, String gameID) {
+        super(gameBox, gameID);
+    }
 
     public TicTacToe(GameBox gameBox) {
         super(gameBox, GameBundle.TIC_TAC_TOE);
@@ -55,6 +60,10 @@ public class TicTacToe extends Game {
     public void init() {
         loadSheetItems();
         loadMarkers();
+        npcHead = ItemStackUtility.getPlayerHead("MHF_Villager").clone();
+        ItemMeta meta = npcHead.getItemMeta();
+        meta.setLore(new ArrayList<>());
+        npcHead.setItemMeta(meta);
     }
 
     private void loadSheetItems() {
@@ -104,13 +113,13 @@ public class TicTacToe extends Game {
 
     private void loadDefaultMarkers() {
         // ToDo: load default from the default config file
-        ItemStack markerOne = new ItemStack(Material.EMERALD, 1, (short) 14);
+        ItemStack markerOne = new ItemStack(Material.EMERALD, 1);
         ItemMeta meta = markerOne.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%''s mark");
+        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%'s mark");
         markerOne.setItemMeta(meta);
-        ItemStack markerTwo = new ItemStack(Material.DIAMOND, 1, (short) 7);
+        ItemStack markerTwo = new ItemStack(Material.DIAMOND, 1);
         meta = markerTwo.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%''s mark");
+        meta.setDisplayName(ChatColor.DARK_AQUA + "%player%'s mark");
         markerTwo.setItemMeta(meta);
         markers.add(markerOne);
         markers.add(markerTwo);
@@ -154,6 +163,10 @@ public class TicTacToe extends Game {
 
     public ItemStack getSheetInnerItem() {
         return sheetInnerItem;
+    }
+
+    public ItemStack getNpcHead() {
+        return npcHead;
     }
 
     public class MarkerPair {

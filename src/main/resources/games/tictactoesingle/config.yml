@@ -19,7 +19,7 @@ gameBox:
     # lore of the button
     lore:
     - ""
-    - "&1Classic two player game"
+    - "&1Play against the computer"
   gameButtons:
     saveStats:
       materialData: "PAPER"
@@ -65,7 +65,7 @@ sheetInner:
 
 markers:
   marker1:
-    materialData: 'slime_ball'
+    materialData: '341'
     displayName: '&5%player%''s mark'
   marker2:
     materialData: 'barrier'
