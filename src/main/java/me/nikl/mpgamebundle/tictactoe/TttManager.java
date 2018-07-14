@@ -94,7 +94,11 @@ public class TttManager extends EasyManager {
         int timePerTurn = buttonSec.getInt("timePerTurn", 10);
         boolean saveStats = buttonSec.getBoolean("saveStats", false);
         boolean loseOnTimeOver = true;
-        gameTypes.put(buttonID, new TttRules(buttonID, saveStats, SaveType.WINS, cost, reward, tokens, timePerTurn, loseOnTimeOver));
+        TttRules rules = new TttRules(buttonID, saveStats, SaveType.WINS, cost, reward, tokens, timePerTurn, loseOnTimeOver);
+        int randomMoveProbability = buttonSec.getInt("randomMoveProbability", 0);
+        if (randomMoveProbability > 100 || randomMoveProbability < 0) randomMoveProbability = 0;
+        rules.setRandomMoveProbability(randomMoveProbability);
+        gameTypes.put(buttonID, rules);
     }
 
     @Override

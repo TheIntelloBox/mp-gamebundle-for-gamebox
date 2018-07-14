@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,10 +20,11 @@ import java.util.UUID;
  */
 public class TttGameSP extends TttGame {
     private Player player;
-    private boolean firstTurn = false;
+    private boolean firstTurn = true;
     private String name = "NPC";
     private ItemStack npcHead;
-    private int timeForNpcTurn = 2;
+    private int timeForNpcTurn = 3000;
+    private double randomMoveProbability;
 
     public TttGameSP(TicTacToe ticTacToe, TttRules rules, Player player) {
         this.ticTacToe = ticTacToe;
@@ -33,16 +35,13 @@ public class TttGameSP extends TttGame {
         language = (TttLanguage) ticTacToe.getGameLang();
         nmsUtility = NmsFactory.getNmsUtility();
         loadNpcHead();
+        randomMoveProbability = rules.getRandomMoveProbability();
         this.inventory = ticTacToe.createInventory(54, this.language.PREFIX);
         this.player = player;
         player.openInventory(inventory);
         prepareInventory();
         timer = new GameTimer(this);
         timer.runTaskTimer(ticTacToe.getGameBox(), 3, 3);
-        double randomNumber = random.nextDouble();
-        if (randomNumber < 0.5) {
-            firstTurn = true;
-        }
         beginningTurn = System.currentTimeMillis();
         updateTitle();
     }
@@ -143,14 +142,67 @@ public class TttGameSP extends TttGame {
     }
 
     private void npcMove() {
-        int gridSlot = random.nextInt(9);
-        while (grid[gridSlot] != 0) {
-            gridSlot = random.nextInt(9);
+        if (random.nextInt(100) < randomMoveProbability) {
+            ticTacToe.info("playing random");
+            randomMove();
+            return;
         }
+        if (grid[4] == 0) {
+            ticTacToe.info("take middle");
+            place(4);
+            return;
+        }
+        int slotToWin = findSlotToWin(false);
+        if (slotToWin >= 0) {
+            ticTacToe.info("win with " + slotToWin);
+            place(slotToWin);
+            return;
+        }
+        int slotToBlock = findSlotToWin(true);
+        if (slotToBlock >= 0) {
+            ticTacToe.info("block " + slotToBlock);
+            place(slotToBlock);
+            return;
+        }
+        // not perfect, but don't wont to spend too much time on the AI. It should be impossible to win against.
+        ticTacToe.info("random, because nothing else to do");
+        randomMove();
+    }
+
+    private int findSlotToWin(boolean player) {
+        for (int slot = 0; slot < 9; slot++) {
+            if (grid[slot] != 0) continue;
+            grid[slot] = player?1:2;
+            if (isWon()) {
+                grid[slot] = 0;
+                return slot;
+            }
+            grid[slot] = 0;
+        }
+        return -1;
+    }
+
+    private void place(int gridSlot) {
         grid[gridSlot] = 2;
         inventory.setItem(toInventory(gridSlot), markerPair.getTwo());
-        ticTacToe.info("placed " + "2" + " in grid slot " + gridSlot);
+        ticTacToe.info("placed 2 in grid slot " + gridSlot);
         stonesPlaced ++;
         checkGameStatusAndNextTurn();
+    }
+
+    private void randomMove() {
+        List<Integer> emptySlots = new ArrayList<>();
+        for (int slot = 0; slot < 9; slot++) {
+            ticTacToe.info("slot " + slot + " is " + grid[slot]);
+            if (grid[slot] == 0) emptySlots.add(slot);
+        }
+        ticTacToe.info(emptySlots.toString());
+        if (emptySlots.isEmpty()) {
+            ticTacToe.info("full grid during NPC move!");
+            onDraw();
+            return;
+        }
+        int rand = random.nextInt(emptySlots.size());
+        place(emptySlots.get(rand));
     }
 }

@@ -15,7 +15,7 @@ gameBox:
     # define the Material and data for the button (format: 'material:data')
     materialData: "PAPER"
     # display name of the button
-    displayName: "&3Tic Tac Toe"
+    displayName: "&3Tic Tac Toe (PvP)"
     # lore of the button
     lore:
     - ""

@@ -9,6 +9,7 @@ import me.nikl.gamebox.game.rules.GameRuleRewards;
 public class TttRules extends GameRuleRewards {
     private boolean loseOnTimeOver;
     private int timePerTurn = 10;
+    private int randomMoveProbability = 0;
 
     public TttRules(String key, boolean saveStats, SaveType saveType, double cost, double moneyToWin, int tokenToWin, int timePerTurn, boolean loseOnTimeOver) {
         super(key, saveStats, saveType, cost, moneyToWin, tokenToWin);
@@ -22,5 +23,13 @@ public class TttRules extends GameRuleRewards {
 
     public int getTimePerTurn() {
         return timePerTurn;
+    }
+
+    public int getRandomMoveProbability() {
+        return randomMoveProbability;
+    }
+
+    public void setRandomMoveProbability(int randomMoveProbability) {
+        this.randomMoveProbability = randomMoveProbability;
     }
 }

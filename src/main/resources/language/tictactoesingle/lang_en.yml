@@ -32,14 +32,14 @@ name: '&1TicTacToe&r'
 prefix: "[&3TicTacToe&r]"
 
 gameHelp:
-  - '&1&lThis game is for two players'
   - '&1&lTry to get 3 marks in a row on the 3x3 grid.'
+  - '&1&lAt the same time stop the computer from doing so.'
 
 inventoryTitles:
   won: "&2TicTacToe       &2You won!"
   lost: "&2TicTacToe       &4You lost!"
   draw: "&2TicTacToe       &4Draw!"
-  othersTurn: "&2TicTacToe     &4Others turn!  &a%time%"
+  othersTurn: "&2TicTacToe     &4NPC's turn!  &a%time%"
   yourTurn: "&2TicTacToe     &2Your turn!  &4%time%"
 
   
