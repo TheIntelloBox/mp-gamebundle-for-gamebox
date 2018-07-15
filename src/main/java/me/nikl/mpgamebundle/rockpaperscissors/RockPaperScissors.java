@@ -61,7 +61,7 @@ public class RockPaperScissors extends Game {
     }
 
     private void loadDefaultIndicatorWon() {
-        this.indicatorWon = ItemStackUtility.getItemStack("stained_glass_pane:13");
+        this.indicatorWon = ItemStackUtility.getItemStack("stained_glass_pane:5");
         ItemMeta meta = indicatorWon.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_AQUA + "Won");
         indicatorWon.setItemMeta(meta);

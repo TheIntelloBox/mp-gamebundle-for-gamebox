@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * @author Niklas Eicker
@@ -38,7 +39,7 @@ public class RpsGame {
     private String currentFirstTitle, currentSecondTitle;
     private NmsUtility nmsUtility = NmsFactory.getNmsUtility();
     private boolean firstPlaySounds, secondPlaySounds;
-    private Sound wonSound = Sound.VILLAGER_YES, lostSound = Sound.VILLAGER_NO, drawSound = Sound.VILLAGER_IDLE;
+    private Sound wonSound = Sound.LEVEL_UP, lostSound = Sound.VILLAGER_NO, drawSound = Sound.VILLAGER_IDLE;
     private GameTimer timer = new GameTimer(this);
     // animation
     private List<Integer> animationSteps = new ArrayList<>();
@@ -152,7 +153,7 @@ public class RpsGame {
                 playSound(true, lostSound);
                 playSound(false, wonSound);
             }
-            if ((winsTwo + winsOne) == rules.getNumberOfRounds()) {
+            if (isGameOver()) {
                 onGameOver();
             }
             firstIcon = null;
@@ -165,6 +166,12 @@ public class RpsGame {
             }
             updateTitle();
         }
+    }
+
+    private boolean isGameOver() {
+        return (winsTwo + winsOne) == numberOfRounds ||
+                winsTwo == numberOfRounds - numberOfRounds/2 ||
+                winsOne == numberOfRounds - numberOfRounds/2;
     }
 
     private void onGameOver() {
@@ -193,6 +200,7 @@ public class RpsGame {
         } else {
             if (status == Status.OVER) timer.cancel();
         }
+        if (status == Status.OVER) return;
         updateTitle();
         if (status == Status.WAIT && System.currentTimeMillis() > stateEndTimeStamp) {
             status = Status.CHOOSE;
@@ -245,9 +253,9 @@ public class RpsGame {
         inventory.setItem(23, secondIcon.getItem());
     }
 
-    public void onClose(InventoryCloseEvent inventoryCloseEvent) {
+    public void onClose(UUID uuid) {
         if (status == Status.OVER || playerTwo == null || playerOne == null) return;
-        boolean firstQuit = inventoryCloseEvent.getPlayer().getUniqueId().equals(playerOne.getUniqueId());
+        boolean firstQuit = uuid.equals(playerOne.getUniqueId());
 
         if (firstQuit) {
             playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));

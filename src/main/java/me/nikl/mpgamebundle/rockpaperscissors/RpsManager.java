@@ -47,7 +47,10 @@ public class RpsManager extends EasyManager {
 
     @Override
     public void removeFromGame(UUID uuid) {
-
+        RpsGame game = games.get(uuid);
+        if (game == null) return;
+        game.onClose(uuid);
+        games.remove(uuid);
     }
 
     @Override
@@ -75,9 +78,6 @@ public class RpsManager extends EasyManager {
 
     @Override
     public void onInventoryClose(InventoryCloseEvent inventoryCloseEvent) {
-        RpsGame game = games.get(inventoryCloseEvent.getPlayer().getUniqueId());
-        if (game == null) return;
-        game.onClose(inventoryCloseEvent);
-        games.remove(inventoryCloseEvent.getPlayer().getUniqueId());
+        removeFromGame(inventoryCloseEvent.getPlayer().getUniqueId());
     }
 }

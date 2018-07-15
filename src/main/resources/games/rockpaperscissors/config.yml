@@ -71,7 +71,7 @@ rock:
 
 # indicators
 indicatorWon:
-  materialData: 'stained_glass_pane:13'
+  materialData: 'stained_glass_pane:5'
   displayName: '&5Won'
 indicatorPlaceholder:
   materialData: 'stained_glass_pane:7'
