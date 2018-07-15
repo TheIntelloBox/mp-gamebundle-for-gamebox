@@ -30,8 +30,8 @@ public class GameBundle extends JavaPlugin {
         new Module(gameBox, TIC_TAC_TOE_SP
                 , "me.nikl.mpgamebundle.tictactoe.TicTacToeSP"
                 , this, TIC_TAC_TOE_SP, "ttts");
-        /*new Module(gameBox, ROCK_PAPER_SCISSORS
+        new Module(gameBox, ROCK_PAPER_SCISSORS
                 , "me.nikl.mpgamebundle.rockpaperscissors.RockPaperScissors"
-                , this, ROCK_PAPER_SCISSORS, "rps");*/
+                , this, ROCK_PAPER_SCISSORS, "rps");
     }
 }
