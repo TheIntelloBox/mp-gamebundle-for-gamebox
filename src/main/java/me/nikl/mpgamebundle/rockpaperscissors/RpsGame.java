@@ -250,11 +250,11 @@ public class RpsGame {
         boolean firstQuit = inventoryCloseEvent.getPlayer().getUniqueId().equals(playerOne.getUniqueId());
 
         if (firstQuit) {
-            playerOne = null;
             playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
+            playerOne = null;
         } else {
-            playerTwo = null;
             playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
+            playerTwo = null;
         }
         status = Status.OVER;
         rockPaperScissors.onGameWon(firstQuit?playerTwo:playerOne, rules, 1);
