@@ -2,6 +2,7 @@ package me.nikl.mpgamebundle.tictactoe.game;
 
 import me.nikl.gamebox.nms.NmsFactory;
 import me.nikl.gamebox.utility.ItemStackUtility;
+import me.nikl.gamebox.utility.Permission;
 import me.nikl.mpgamebundle.tictactoe.TicTacToe;
 import me.nikl.mpgamebundle.tictactoe.TttLanguage;
 import me.nikl.mpgamebundle.tictactoe.TttRules;
@@ -63,15 +64,27 @@ public class TttGameMP extends TttGame {
     protected void onGaveUp() {
         gameOver();
         if (firstTurn) {
+            if (ticTacToe.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerTwo, ticTacToe.getGameID())) {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_MONEY_TOO_SLOW.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_TOO_SLOW);
+            }
+            playerOne.sendMessage(language.PREFIX + language.GAME_TOO_SLOW);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
-            playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
-            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
         } else {
-            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
+            if (ticTacToe.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerOne, ticTacToe.getGameID())) {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_MONEY_TOO_SLOW.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_TOO_SLOW);
+            }
             playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
+            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
-            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
         }
     }
 
@@ -130,14 +143,20 @@ public class TttGameMP extends TttGame {
     @Override
     protected void onGameWon() {
         gameOver();
-        if (firstTurn) {
-            nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
-            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_LOST);
+        Player winner = firstTurn?playerOne:playerTwo;
+        Player loser = firstTurn?playerTwo:playerOne;
+
+        if (ticTacToe.getSettings().isEconEnabled()
+                && rules.getMoneyToWin() > 0
+                && !Permission.BYPASS_GAME.hasPermission(winner, ticTacToe.getGameID())) {
+            winner.sendMessage(language.PREFIX + language.GAME_WON_MONEY.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
         } else {
-            nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
-            nmsUtility.updateInventoryTitle(playerOne, language.TITLE_LOST);
+            winner.sendMessage(language.PREFIX + language.GAME_WON);
         }
-        ticTacToe.onGameWon(firstTurn?playerOne:playerTwo, rules, 1);
+        loser.sendMessage(language.PREFIX + language.GAME_LOSE);
+        nmsUtility.updateInventoryTitle(winner, language.TITLE_WON);
+        nmsUtility.updateInventoryTitle(loser, language.TITLE_LOST);
+        ticTacToe.onGameWon(winner, rules, 1);
     }
 
     private boolean isPlayerOne(InventoryInteractEvent event) {
@@ -153,13 +172,26 @@ public class TttGameMP extends TttGame {
         if (gameOver) return;
         gameOver();
         if (uuid.equals(playerOne.getUniqueId())) {
+            if (ticTacToe.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerTwo, ticTacToe.getGameID())) {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_MONEY_GAVE_UP.replace("%loser%", playerOne.getName()).replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
+            }
             playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             nmsUtility.updateInventoryTitle(playerTwo, language.TITLE_WON);
-            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
         } else {
+            if (ticTacToe.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerOne, ticTacToe.getGameID())) {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_MONEY_GAVE_UP.replace("%loser%", playerTwo.getName()).replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
+            }
             playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             nmsUtility.updateInventoryTitle(playerOne, language.TITLE_WON);
-            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
         }
+        ticTacToe.onGameWon(uuid.equals(playerOne.getUniqueId())?playerOne:playerTwo, rules, 1);
     }
 }

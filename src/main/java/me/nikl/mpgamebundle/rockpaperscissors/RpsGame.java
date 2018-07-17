@@ -4,6 +4,7 @@ import me.nikl.gamebox.GameBoxSettings;
 import me.nikl.gamebox.nms.NmsFactory;
 import me.nikl.gamebox.nms.NmsUtility;
 import me.nikl.gamebox.utility.ItemStackUtility;
+import me.nikl.gamebox.utility.Permission;
 import me.nikl.gamebox.utility.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -181,9 +182,23 @@ public class RpsGame {
             return;
         }
         boolean firstWon = winsOne>winsTwo;
-        nmsUtility.updateInventoryTitle(firstWon?playerOne:playerTwo, language.TITLE_WON);
+        Player winner = firstWon?playerOne:playerTwo;
+        Player loser = firstWon?playerTwo:playerOne;
+        onGameWon(winner);
         nmsUtility.updateInventoryTitle(firstWon?playerTwo:playerOne, language.TITLE_LOST);
-        rockPaperScissors.onGameWon(firstWon?playerOne:playerTwo, rules, 1);
+        if (rockPaperScissors.getSettings().isEconEnabled()
+                && rules.getMoneyToWin() > 0
+                && !Permission.BYPASS_GAME.hasPermission(winner, rockPaperScissors.getGameID())) {
+            winner.sendMessage(language.PREFIX + language.GAME_WON_MONEY.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+        } else {
+            winner.sendMessage(language.PREFIX + language.GAME_WON);
+        }
+        loser.sendMessage(language.PREFIX + language.GAME_LOSE);
+    }
+
+    private void onGameWon(Player winner) {
+        nmsUtility.updateInventoryTitle(winner, language.TITLE_WON);
+        rockPaperScissors.onGameWon(winner, rules, 1);
     }
 
     private void onDraw() {
@@ -213,11 +228,43 @@ public class RpsGame {
             return;
         }
         if (status == Status.CHOOSE && System.currentTimeMillis() > stateEndTimeStamp) {
-            status = Status.OVER;
+            onTimeRanOut();
+        }
+    }
+
+    private void onTimeRanOut() {
+        status = Status.OVER;
+        if (firstIcon == null && secondIcon != null) {
+            currentFirstTitle = language.TITLE_LOST;
+            currentSecondTitle = language.TITLE_WON;
+            if (rockPaperScissors.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerTwo, rockPaperScissors.getGameID())) {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_MONEY_TOO_SLOW.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_TOO_SLOW);
+            }
+            playerOne.sendMessage(language.PREFIX + language.GAME_TOO_SLOW);
+            onGameWon(playerTwo);
+        } else if (firstIcon != null && secondIcon == null) {
+            currentFirstTitle = language.TITLE_WON;
+            currentSecondTitle = language.TITLE_LOST;
+            if (rockPaperScissors.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerOne, rockPaperScissors.getGameID())) {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_MONEY_TOO_SLOW.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_TOO_SLOW);
+            }
+            playerTwo.sendMessage(language.PREFIX + language.GAME_TOO_SLOW);
+            onGameWon(playerOne);
+        } else {
             currentFirstTitle = language.TITLE_LOST;
             currentSecondTitle = language.TITLE_LOST;
-            updateTitle();
+            playerTwo.sendMessage(language.PREFIX + language.GAME_TOO_SLOW);
+            playerOne.sendMessage(language.PREFIX + language.GAME_TOO_SLOW);
         }
+        updateTitle();
     }
 
     private void animateWin(boolean firstWon) {
@@ -258,14 +305,28 @@ public class RpsGame {
         boolean firstQuit = uuid.equals(playerOne.getUniqueId());
 
         if (firstQuit) {
-            playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
+            if (rockPaperScissors.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerTwo, rockPaperScissors.getGameID())) {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_WON_MONEY_GAVE_UP.replace("%loser%", playerOne.getName()).replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerTwo.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerOne.getName()));
+            }
+            playerOne.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             playerOne = null;
         } else {
-            playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
+            if (rockPaperScissors.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(playerOne, rockPaperScissors.getGameID())) {
+                playerOne.sendMessage(language.PREFIX + language.GAME_WON_MONEY_GAVE_UP.replace("%loser%", playerTwo.getName()).replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                playerOne.sendMessage(language.PREFIX + language.GAME_OTHER_GAVE_UP.replace("%loser%", playerTwo.getName()));
+            }
+            playerTwo.sendMessage(language.PREFIX + language.GAME_GAVE_UP);
             playerTwo = null;
         }
+        onGameWon(firstQuit?playerTwo:playerOne);
         status = Status.OVER;
-        rockPaperScissors.onGameWon(firstQuit?playerTwo:playerOne, rules, 1);
     }
 
     private enum Status {

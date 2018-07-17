@@ -2,6 +2,7 @@ package me.nikl.mpgamebundle.tictactoe.game;
 
 import me.nikl.gamebox.nms.NmsFactory;
 import me.nikl.gamebox.utility.ItemStackUtility;
+import me.nikl.gamebox.utility.Permission;
 import me.nikl.mpgamebundle.tictactoe.TicTacToe;
 import me.nikl.mpgamebundle.tictactoe.TttLanguage;
 import me.nikl.mpgamebundle.tictactoe.TttRules;
@@ -118,7 +119,13 @@ public class TttGameSP extends TttGame {
         gameOver();
         if (firstTurn) {
             nmsUtility.updateInventoryTitle(player, language.TITLE_WON);
-            player.sendMessage(language.PREFIX + language.GAME_WON);
+            if (ticTacToe.getSettings().isEconEnabled()
+                    && rules.getMoneyToWin() > 0
+                    && !Permission.BYPASS_GAME.hasPermission(player, ticTacToe.getGameID())) {
+                player.sendMessage(language.PREFIX + language.GAME_WON_MONEY.replace("%reward%", String.valueOf(rules.getMoneyToWin())));
+            } else {
+                player.sendMessage(language.PREFIX + language.GAME_WON);
+            }
             ticTacToe.onGameWon(player, rules, 1);
         } else {
             nmsUtility.updateInventoryTitle(player, language.TITLE_LOST);
